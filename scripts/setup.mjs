@@ -46,6 +46,10 @@ function run(file, args, opts = {}) {
 }
 
 function setSecret(name, value) {
+  if (!value) {
+    console.log(`skip worker secret: ${name} (empty)`);
+    return;
+  }
   execFileSync("npx", ["--yes", "wrangler@latest", "secret", "put", name], {
     cwd: "panel",
     input: String(value),
