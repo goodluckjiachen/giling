@@ -1,0 +1,31 @@
+name: setup
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: setup
+  cancel-in-progress: false
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: CF setup + deploy Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_TOKEN }}
+          CLOUDFLARE_EMAIL: ${{ secrets.CF_EMAIL }}
+          ACCOUNT_ID: d30bed2763a23cf8eddf343ca192c5ff
+          ZONE_ID: a591cd553ec34768475ee2010d4cd7ab
+          DOMAIN: ygtxl.dpdns.org
+          TUNNEL_ID: 921e7d71-3187-4e23-9397-f907e3ac8be6
+          PANEL_PASSWORD: ${{ secrets.PANEL_PASSWORD }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: node scripts/setup.mjs
