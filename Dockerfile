@@ -13,8 +13,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     dbus-x11 \
     sudo \
     fonts-dejavu-core \
+    fonts-liberation \
+    fonts-noto-cjk \
+    fonts-noto-color-emoji \
     xfonts-base \
     && rm -rf /var/lib/apt/lists/*
+
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
 RUN useradd -m -s /bin/bash appuser && \
     echo "appuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
