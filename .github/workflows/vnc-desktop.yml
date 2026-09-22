@@ -1,0 +1,62 @@
+name: vnc-desktop
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: vnc-desktop
+  cancel-in-progress: true
+
+jobs:
+  desktop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10080
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t vnc:${{ github.run_id }} .
+
+      - name: Start desktop
+        run: |
+          docker run -d --name vnc -p 6080:6080 \
+            -e VNC_PASSWORD="${{ secrets.VNC_PASSWORD }}" \
+            "vnc:${{ github.run_id }}"
+
+          for i in $(seq 1 90); do
+            if curl -sf http://127.0.0.1:6080/vnc.html >/dev/null; then
+              echo "noVNC ready after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+
+          docker logs vnc 2>&1 | tail -30
+          echo "noVNC not ready"
+          exit 1
+
+      - name: Start cloudflared
+        env:
+          CLOUDFLARED_TUNNEL_TOKEN: ${{ secrets.CLOUDFLARED_TUNNEL_TOKEN }}
+        run: |
+          curl -fsSLo cloudflared \
+            https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+          chmod +x cloudflared
+          echo "::notice::Tunnel starting, open https://vnc.ygtxl.dpdns.org/vnc.html"
+
+          fails=0
+          while true; do
+            if ! docker inspect -f '{{.State.Running}}' vnc 2>/dev/null | grep -q true; then
+              echo "desktop container exited"
+              exit 1
+            fi
+            ./cloudflared tunnel --no-autoupdate \
+              --token "$CLOUDFLARED_TUNNEL_TOKEN"
+            fails=$((fails + 1))
+            if [ "$fails" -ge 5 ]; then
+              echo "cloudflared failed $fails consecutive times, giving up"
+              exit 1
+            fi
+            echo "cloudflared exited, retry $fails in 3s"
+            sleep 3
+          done
