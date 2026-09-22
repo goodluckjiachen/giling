@@ -1,0 +1,24 @@
+name: probe-duration
+
+on:
+  workflow_dispatch:
+    inputs:
+      hours:
+        description: Hours to keep this job alive
+        required: false
+        default: "1"
+        type: number
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10080
+    steps:
+      - name: Sleep
+        run: |
+          end=$(( $(date +%s) + ${{ inputs.hours }} * 3600 ))
+          while [ "$(date +%s)" -lt "$end" ]; do
+            echo "$(date -u +%FT%TZ) alive"
+            sleep 600
+          done
+          echo "SURVIVED ${{ inputs.hours }}h"
