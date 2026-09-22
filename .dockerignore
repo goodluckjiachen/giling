@@ -1,0 +1,8 @@
+.git
+.gitignore
+*.md
+.vscode
+node_modules
+npm-debug.log
+.dockerignore
+railway.json
