@@ -75,10 +75,13 @@ async function main() {
   await api(`/accounts/${ACC}/cfd_tunnel/${tid}/configurations`, {
     method: "PUT",
     body: {
-      ingress: [
-        { hostname: vnc, service: "http://localhost:6080" },
-        { service: "http_status:404" },
-      ],
+      config: {
+        ingress: [
+          { hostname: vnc, service: "http://localhost:6080" },
+          { service: "http_status:404" },
+        ],
+        "warp-routing": { enabled: false },
+      },
     },
   });
   console.log(`ingress: ${vnc} -> http://localhost:6080`);
@@ -87,18 +90,18 @@ async function main() {
   const cnameTarget = `${tid}.cfargotunnel.com`;
   const recs = await api(`/zones/${ZONE}/dns_records?per_page=100`);
   const existing = (recs || []).find((r) => r.name === vnc);
-  if (existing && existing.type === "CNAME" && existing.target === cnameTarget && existing.proxied) {
+  if (existing && existing.type === "CNAME" && existing.content === cnameTarget && existing.proxied) {
     console.log(`vnc DNS ok: ${vnc} -> ${cnameTarget}`);
   } else if (existing) {
     await api(`/zones/${ZONE}/dns_records/${existing.id}`, {
       method: "PUT",
-      body: { type: "CNAME", name: vnc, target: cnameTarget, proxied: true, ttl: 1 },
+      body: { type: "CNAME", name: vnc, content: cnameTarget, proxied: true, ttl: 1 },
     });
     console.log(`vnc DNS updated`);
   } else {
     await api(`/zones/${ZONE}/dns_records`, {
       method: "POST",
-      body: { type: "CNAME", name: vnc, target: cnameTarget, proxied: true, ttl: 1 },
+      body: { type: "CNAME", name: vnc, content: cnameTarget, proxied: true, ttl: 1 },
     });
     console.log(`vnc DNS created`);
   }
