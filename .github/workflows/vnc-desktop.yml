@@ -50,7 +50,7 @@ jobs:
               echo "desktop container exited"
               exit 1
             fi
-            ./cloudflared tunnel --no-autoupdate \
+            ./cloudflared tunnel --no-autoupdate run \
               --token "$CLOUDFLARED_TUNNEL_TOKEN"
             fails=$((fails + 1))
             if [ "$fails" -ge 5 ]; then
