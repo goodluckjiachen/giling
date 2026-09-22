@@ -1,0 +1,11 @@
+name = "vnc-panel"
+main = "index.js"
+compatibility_date = "2026-01-01"
+account_id = "d30bed2763a23cf8eddf343ca192c5ff"
+
+[vars]
+OWNER = "goodluckjiachen"
+REPO = "giling"
+REF = "main"
+WORKFLOW = "vnc-desktop.yml"
+VNC_URL = "https://vnc.ygtxl.dpdns.org"
